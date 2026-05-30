@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a9d2b">
+<link rel="manifest" href="/manifest.json">
+<title>Account · PANELSELL</title>
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div id="top"></div>
+<main class="wrap" id="page"><div class="spinner"></div></main>
+<div class="footer" data-footer></div>
+<div id="nav"></div>
+<script src="/js/app.js"></script>
+<script>
+async function boot() {
+  document.getElementById("top").innerHTML = topBar();
+  document.getElementById("nav").innerHTML = navBar("account.html");
+  await FF.loadConfig();
+  await FF.loadUser();
+  if (!FF.requireAuth()) return;
+  const pay = FF.param("pay");
+  if (pay === "success") FF.toast("Payment verified ✓");
+  else if (pay && pay !== "cancelled") FF.toast("Payment not completed", true);
+  render();
+}
+async function ordersCount() { try { const d = await FF.api("/orders"); return d.orders.length; } catch { return 0; } }
+async function render() {
+  const u = FF.user, me = FF._me;
+  const orders = await ordersCount();
+  const refLink = location.origin + "/register.html?ref=" + u.referral_code;
+  document.getElementById("page").innerHTML = `
+  <div class="card">
+    <div class="row">
+      <div class="iconbtn" style="width:54px;height:54px;font-size:24px">${FF.esc(u.name[0] || "U").toUpperCase()}</div>
+      <div style="flex:1"><h2 style="margin:0">Hello, <span style="color:var(--green)">${FF.esc(u.name)}</span></h2>
+      <span class="muted">Member since ${new Date(u.created_at).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</span></div>
+    </div>
+  </div>
+  <div class="card balance-card">
+    <div class="muted" style="color:#cdeed4">AVAILABLE BALANCE</div>
+    <div class="row"><div class="amt">${FF.money(u.balance)} <span style="font-size:14px">BDT</span></div>
+    <button class="btn btn-ghost" style="width:auto;background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.4)" onclick="location.href='addfund.html'">+ Add Fund</button></div>
+  </div>
+  <div class="statgrid">
+    <div class="stat"><div class="n">${orders}</div><div class="l">Total Orders</div></div>
+    <div class="stat"><div class="n">${FF.money(u.total_spent)}</div><div class="l">Total Spent</div></div>
+  </div>
+  <div class="card">
+    <div class="row"><h2 style="margin:0">👥 Referral Program</h2><span class="badge b-bonus">${me.referral_bonus_percent}% Bonus</span></div>
+    <div class="copybox" style="margin-top:12px"><input class="input" id="ref" value="${FF.esc(refLink)}" readonly><button class="btn btn-ghost" style="width:auto;padding:0 16px" id="copy">⧉ Copy</button></div>
+    <div class="divider"></div>
+    <b>Bonus History</b>
+    ${me.bonus_history.length ? me.bonus_history.map(b => `<div class="row" style="margin-top:8px"><span class="muted">${FF.esc(b.reason)} · ${new Date(b.created_at).toLocaleDateString()}</span><b style="color:var(--green)">+${FF.money(b.amount)}</b></div>`).join("") : '<p class="muted" style="text-align:center;margin-top:10px">No bonus earned yet</p>'}
+  </div>
+  <div class="card">
+    <h2>⚙️ Account Settings</h2>
+    <div class="row"><span class="muted">Email</span><span>${FF.esc(u.email)}</span></div>
+    <div class="row" style="margin-top:8px"><span class="muted">Phone</span><span>${FF.esc(u.phone || "—")}</span></div>
+    <div class="divider"></div>
+    <button class="btn btn-red btn-block" id="logout">Log Out</button>
+  </div>`;
+  document.getElementById("copy").onclick = () => { navigator.clipboard.writeText(refLink); FF.toast("Referral link copied"); };
+  document.getElementById("logout").onclick = () => FF.logout();
+}
+boot();
+</script>
+</body>
+</html>

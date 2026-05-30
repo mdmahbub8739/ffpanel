@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a9d2b">
+<link rel="manifest" href="/manifest.json">
+<title>PANELSELL</title>
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div id="top"></div>
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <h2 data-tagline>কিভাবে প্যানেল কিনবেন</h2>
+      <div class="trust"><span>🛡️ 100% TRUSTED</span><span>⚡ FAST SERVICE</span><span>🔒 SECURE PAYMENT</span><span>🎧 24/7 SUPPORT</span></div>
+    </div>
+  </section>
+  <div class="tabs" id="tabs"></div>
+  <div id="catalog"><div class="spinner"></div></div>
+</main>
+<div class="footer" data-footer></div>
+<div id="nav"></div>
+<script src="/js/app.js"></script>
+<script>
+let CURRENT = "all";
+async function boot() {
+  document.getElementById("top").innerHTML = topBar();
+  document.getElementById("nav").innerHTML = navBar("index.html");
+  await FF.loadConfig();
+  await FF.loadUser();
+  if (FF.cfg.hero_tagline) document.querySelector("[data-tagline]").textContent = FF.cfg.hero_tagline;
+  load();
+}
+async function load() {
+  const grid = document.getElementById("catalog");
+  grid.innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await FF.api("/products?category=" + encodeURIComponent(CURRENT));
+    const tabs = document.getElementById("tabs");
+    if (!tabs.dataset.done) {
+      tabs.innerHTML = d.categories.map(c =>
+        `<div class="chip ${c.slug === CURRENT ? "active" : ""}" data-slug="${c.slug}">${FF.esc(c.name)}</div>`).join("");
+      tabs.dataset.done = "1";
+      tabs.querySelectorAll(".chip").forEach(ch => ch.onclick = () => {
+        CURRENT = ch.dataset.slug;
+        tabs.querySelectorAll(".chip").forEach(x => x.classList.remove("active"));
+        ch.classList.add("active"); load();
+      });
+    }
+    if (!d.products.length) { grid.innerHTML = '<div class="empty"><h3>No products yet</h3><p class="muted">Add products from the admin panel.</p></div>'; return; }
+    grid.innerHTML = '<div class="grid">' + d.products.map(p => `
+      <div class="product" onclick="location.href='product.html?slug=${encodeURIComponent(p.slug)}'">
+        <div class="thumb" style="background-image:url('${FF.esc(p.image_url || "")}')"></div>
+        <div class="body">
+          <h3>${FF.esc(p.name)}</h3>
+          <div class="price">${p.min_price != null ? FF.money(p.min_price) : "—"}</div>
+          <button class="btn btn-green btn-sm">PURCHASE NOW</button>
+        </div>
+      </div>`).join("") + '</div>';
+  } catch (e) { grid.innerHTML = '<div class="empty"><h3>Failed to load</h3></div>'; }
+}
+boot();
+</script>
+</body>
+</html>

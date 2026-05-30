@@ -1,0 +1,14 @@
+{
+  "name": "ffpanel",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "db:init": "wrangler d1 execute ffpanel --file=./schema.sql --remote",
+    "db:init:local": "wrangler d1 execute ffpanel --file=./schema.sql --local",
+    "dev": "wrangler pages dev public --d1 DB=ffpanel",
+    "deploy": "wrangler pages deploy public"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}

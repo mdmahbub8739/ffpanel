@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a9d2b">
+<link rel="manifest" href="/manifest.json">
+<title>Add Fund · PANELSELL</title>
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div id="top"></div>
+<main class="wrap">
+  <div class="card">
+    <h2>💰 Add Fund</h2>
+    <p class="muted">Top up your wallet via bKash / Nagad. Payment is verified automatically.</p>
+    <div class="field" style="margin-top:14px"><label>Amount (BDT)</label><input class="input" id="amount" type="number" min="10" placeholder="e.g. 100"></div>
+    <div class="tabs" style="padding-bottom:6px">
+      ${[50, 100, 200, 500, 1000].map(a => `<div class="chip" onclick="document.getElementById('amount').value=${a}">৳${a}</div>`).join("")}
+    </div>
+    <button class="btn btn-green btn-block" style="margin-top:12px" id="go">PROCEED TO PAY</button>
+  </div>
+</main>
+<div class="footer" data-footer></div>
+<div id="nav"></div>
+<script src="/js/app.js"></script>
+<script>
+async function boot() {
+  document.getElementById("top").innerHTML = topBar();
+  document.getElementById("nav").innerHTML = navBar("addfund.html");
+  await FF.loadConfig(); await FF.loadUser();
+  if (!FF.requireAuth()) return;
+}
+document.getElementById("go").onclick = async function () {
+  const amt = parseInt(document.getElementById("amount").value, 10);
+  if (!amt || amt < 10) return FF.toast("Enter a valid amount (min ৳10)", true);
+  this.disabled = true; this.textContent = "Processing...";
+  try {
+    const r = await FF.api("/fund", { method: "POST", body: { amount: amt } });
+    location.href = r.checkout_url;
+  } catch (e) { FF.toast(e.message, true); this.disabled = false; this.textContent = "PROCEED TO PAY"; }
+};
+boot();
+</script>
+</body>
+</html>

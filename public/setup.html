@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setup · FF panel sale official</title>
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body style="background:#eef1f4">
+<div id="top"></div>
+<main class="wrap" style="max-width:440px;margin-top:48px">
+  <div class="card">
+    <h2 style="justify-content:center;color:var(--green)">First-Time Setup</h2>
+    <p class="muted" style="text-align:center;margin-bottom:16px">Create the first admin account. Requires the ADMIN_SETUP_KEY you set in Cloudflare.</p>
+    <div class="field"><label>Setup Key</label><input class="input" id="key" type="password"></div>
+    <div class="field"><label>Admin Name</label><input class="input" id="name" value="Administrator"></div>
+    <div class="field"><label>Admin Email</label><input class="input" id="email" type="email"></div>
+    <div class="field"><label>Password (8+ chars)</label><input class="input" id="pass" type="password"></div>
+    <button class="btn btn-green btn-block" id="go">CREATE ADMIN</button>
+  </div>
+</main>
+<script src="/js/app.js"></script>
+<script>
+document.getElementById("top").innerHTML = topBar();
+FF.loadConfig();
+document.getElementById("go").onclick = async function () {
+  this.disabled = true; this.textContent = "...";
+  try {
+    await FF.api("/admin/bootstrap", { method: "POST", body: { setup_key: key.value, name: name.value, email: email.value.trim(), password: pass.value } });
+    FF.toast("Admin created. Redirecting...");
+    setTimeout(() => location.href = "admin.html", 1000);
+  } catch (e) { FF.toast(e.message, true); this.disabled = false; this.textContent = "CREATE ADMIN"; }
+};
+</script>
+</body>
+</html>

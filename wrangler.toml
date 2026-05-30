@@ -1,0 +1,8 @@
+name = "ffpanel"
+pages_build_output_dir = "public"
+compatibility_date = "2026-05-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ffpanel"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
